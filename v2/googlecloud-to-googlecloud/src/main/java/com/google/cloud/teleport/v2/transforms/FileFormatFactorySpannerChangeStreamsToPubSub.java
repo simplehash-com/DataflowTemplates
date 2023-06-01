@@ -165,13 +165,22 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
               @ProcessElement
               public void processElement(ProcessContext context) {
                 byte[] encodedRecord = context.element();
-                JsonObject jsonObj = JsonParser.parseString(new String(encodedRecord)).getAsJsonObject();
-                String modType = jsonObj.get("modType").getAsString();
-                Map<String, String> attributes = new HashMap<>();
-                attributes.put("modType", modType);
+
+                Map<String, String> attributes = null;
+
+                try {
+                  JsonObject jsonObj = JsonParser.parseString(new String(encodedRecord)).getAsJsonObject();
+                  if (jsonObj.has("modType")) {
+                    String modType = jsonObj.get("modType").getAsString();
+                    attributes = new HashMap<>();
+                    attributes.put("modType", modType);
+                  }
+                } catch (Exception e) {
+                  // Unable to parse JSON body; move forward without the modType attribute
+                  e.printStackTrace();
+                }
 
                 PubsubMessage pubsubMessage = new PubsubMessage(encodedRecord, attributes);
-
                 context.output(pubsubMessage);
               }
             }));
