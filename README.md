@@ -220,6 +220,18 @@ Notes:
 - Change `-pl v2/googlecloud-to-googlecloud` and `-DtemplateName` to point to the specific Maven module where your template is located. Even though `-pl` is not required, it allows the command to run considerably faster.
 - In case `-DtemplateName` is not specified, all templates for the module will be staged.
 
+#### Simplehash Deployment - this is what worked
+```shell
+mvn clean package -PtemplatesStage  \
+  -Dmaven.test.skip \
+  -DprojectId="simplehash" \
+  -DbucketName="simplehash-dataflow-templates" \
+  -DstagePrefix="images/$(date +%Y_%m_%d)_01" \
+  -DtemplateName="Spanner_Change_Streams_to_PubSub" \ 
+  -Dcheckstyle.skip \
+```
+
+
 ### Running a Template
 
 A template can also be executed on Dataflow, directly from the command line. The
