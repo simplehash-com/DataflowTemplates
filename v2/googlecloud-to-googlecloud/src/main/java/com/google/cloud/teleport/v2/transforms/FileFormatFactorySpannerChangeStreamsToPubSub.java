@@ -15,10 +15,9 @@
  */
 package com.google.cloud.teleport.v2.transforms;
 
-import static com.google.cloud.teleport.v2.transforms.WriteDataChangeRecordsToAvro.DataChangeRecordToAvroFn;
-import static com.google.cloud.teleport.v2.transforms.WriteDataChangeRecordsToJson.DataChangeRecordToJsonTextFn;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.CoderException;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
@@ -33,9 +32,17 @@ import org.apache.beam.sdk.values.PCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.auto.value.AutoValue;
+import com.google.cloud.teleport.v2.transforms.WriteDataChangeRecordsToAvro.DataChangeRecordToAvroFn;
+import com.google.cloud.teleport.v2.transforms.WriteDataChangeRecordsToJson.DataChangeRecordToJsonTextFn;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 /**
- * The {@link FileFormatFactorySpannerChangeStreamsToPubSub} class is a {@link PTransform} that
- * takes in {@link PCollection} of DataChangeRecords. The transform writes each record to
+ * The {@link FileFormatFactorySpannerChangeStreamsToPubSub} class is a
+ * {@link PTransform} that
+ * takes in {@link PCollection} of DataChangeRecords. The transform writes each
+ * record to
  * PubsubMessage in user specified format.
  */
 @AutoValue
@@ -43,8 +50,7 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
     extends PTransform<PCollection<DataChangeRecord>, PCollection<byte[]>> {
 
   /** Logger for class. */
-  private static final Logger LOG =
-      LoggerFactory.getLogger(FileFormatFactorySpannerChangeStreamsToPubSub.class);
+  private static final Logger LOG = LoggerFactory.getLogger(FileFormatFactorySpannerChangeStreamsToPubSub.class);
 
   private static final String NATIVE_CLIENT = "native_client";
   private static final String PUBSUBIO = "pubsubio";
@@ -66,66 +72,63 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
     PCollection<byte[]> encodedRecords = null;
 
     /*
-     * Calls appropriate class Builder to performs PTransform based on user provided File Format.
+     * Calls appropriate class Builder to performs PTransform based on user provided
+     * File Format.
      */
     switch (outputDataFormat()) {
       case "AVRO":
-        AvroCoder<com.google.cloud.teleport.v2.DataChangeRecord> coder =
-            AvroCoder.of(com.google.cloud.teleport.v2.DataChangeRecord.class);
-        encodedRecords =
-            records
-                .apply(
-                    "Write DataChangeRecord into AVRO",
-                    MapElements.via(new DataChangeRecordToAvroFn()))
-                .apply(
-                    "Convert encoded DataChangeRecord in AVRO to bytes to be saved into"
-                        + " PubsubMessage.",
-                    ParDo.of(
-                        // Convert encoded DataChangeRecord in AVRO to bytes that can be saved into
-                        // PubsubMessage.
-                        new DoFn<com.google.cloud.teleport.v2.DataChangeRecord, byte[]>() {
-                          @ProcessElement
-                          public void processElement(ProcessContext context) {
-                            com.google.cloud.teleport.v2.DataChangeRecord record =
-                                context.element();
-                            byte[] encodedRecord = null;
-                            try {
-                              encodedRecord = CoderUtils.encodeToByteArray(coder, record);
-                            } catch (CoderException ce) {
-                              throw new RuntimeException(ce);
-                            }
-                            context.output(encodedRecord);
-                          }
-                        }));
+        AvroCoder<com.google.cloud.teleport.v2.DataChangeRecord> coder = AvroCoder
+            .of(com.google.cloud.teleport.v2.DataChangeRecord.class);
+        encodedRecords = records
+            .apply(
+                "Write DataChangeRecord into AVRO",
+                MapElements.via(new DataChangeRecordToAvroFn()))
+            .apply(
+                "Convert encoded DataChangeRecord in AVRO to bytes to be saved into"
+                    + " PubsubMessage.",
+                ParDo.of(
+                    // Convert encoded DataChangeRecord in AVRO to bytes that can be saved into
+                    // PubsubMessage.
+                    new DoFn<com.google.cloud.teleport.v2.DataChangeRecord, byte[]>() {
+                      @ProcessElement
+                      public void processElement(ProcessContext context) {
+                        com.google.cloud.teleport.v2.DataChangeRecord record = context.element();
+                        byte[] encodedRecord = null;
+                        try {
+                          encodedRecord = CoderUtils.encodeToByteArray(coder, record);
+                        } catch (CoderException ce) {
+                          throw new RuntimeException(ce);
+                        }
+                        context.output(encodedRecord);
+                      }
+                    }));
         sendToPubSub(encodedRecords);
 
         break;
       case "JSON":
-        encodedRecords =
-            records
-                .apply(
-                    "Write DataChangeRecord into JSON",
-                    MapElements.via(new DataChangeRecordToJsonTextFn()))
-                .apply(
-                    "Convert encoded DataChangeRecord in JSON to bytes to be saved into"
-                        + " PubsubMessage.",
-                    ParDo.of(
-                        new DoFn<String, byte[]>() {
-                          @ProcessElement
-                          public void processElement(ProcessContext context) {
-                            String record = context.element();
-                            byte[] encodedRecord = record.getBytes();
-                            context.output(encodedRecord);
-                          }
-                        }));
+        encodedRecords = records
+            .apply(
+                "Write DataChangeRecord into JSON",
+                MapElements.via(new DataChangeRecordToJsonTextFn()))
+            .apply(
+                "Convert encoded DataChangeRecord in JSON to bytes to be saved into"
+                    + " PubsubMessage.",
+                ParDo.of(
+                    new DoFn<String, byte[]>() {
+                      @ProcessElement
+                      public void processElement(ProcessContext context) {
+                        String record = context.element();
+                        byte[] encodedRecord = record.getBytes();
+                        context.output(encodedRecord);
+                      }
+                    }));
         sendToPubSub(encodedRecords);
         break;
 
       default:
-        final String errorMessage =
-            "Invalid output format:"
-                + outputDataFormat()
-                + ". Supported output formats: JSON, AVRO";
+        final String errorMessage = "Invalid output format:"
+            + outputDataFormat()
+            + ". Supported output formats: JSON, AVRO";
         LOG.info(errorMessage);
         throw new IllegalArgumentException(errorMessage);
     }
@@ -139,17 +142,14 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
     String outputPubsubTopic = "projects/" + projectId + "/topics/" + pubsubTopicName;
 
     if (pubsubAPI.equals(NATIVE_CLIENT)) {
-      final PublishToPubSubDoFn publishToPubSubDoFn =
-          new PublishToPubSubDoFn(projectId, pubsubTopicName);
+      final PublishToPubSubDoFn publishToPubSubDoFn = new PublishToPubSubDoFn(projectId, pubsubTopicName);
       encodedRecords.apply(ParDo.of(publishToPubSubDoFn));
     } else if (pubsubAPI.equals(PUBSUBIO)) {
-      PCollection<PubsubMessage> outputPubsubMessageCollection =
-          convertByteArrayToPubsubMessage(encodedRecords);
+      PCollection<PubsubMessage> outputPubsubMessageCollection = convertByteArrayToPubsubMessage(encodedRecords);
       outputPubsubMessageCollection.apply(
           "Write to PubSub topic", PubsubIO.writeMessages().to(outputPubsubTopic));
     } else {
-      final String apiErrorMessage =
-          "Invalid api:" + pubsubAPI + ". Supported apis: pubsubio, native_client";
+      final String apiErrorMessage = "Invalid api:" + pubsubAPI + ". Supported apis: pubsubio, native_client";
       throw new IllegalArgumentException(apiErrorMessage);
     }
   }
@@ -157,17 +157,22 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
   /** Method that takes in byte arrays and outputs PubsubMessages. */
   private PCollection<PubsubMessage> convertByteArrayToPubsubMessage(
       PCollection<byte[]> encodedRecords) {
-    PCollection<PubsubMessage> messageCollection =
-        encodedRecords.apply(
-            ParDo.of(
-                new DoFn<byte[], PubsubMessage>() {
-                  @ProcessElement
-                  public void processElement(ProcessContext context) {
-                    byte[] encodedRecord = context.element();
-                    PubsubMessage pubsubMessage = new PubsubMessage(encodedRecord, null);
-                    context.output(pubsubMessage);
-                  }
-                }));
+    PCollection<PubsubMessage> messageCollection = encodedRecords.apply(
+        ParDo.of(
+            new DoFn<byte[], PubsubMessage>() {
+              @ProcessElement
+              public void processElement(ProcessContext context) {
+                byte[] encodedRecord = context.element();
+                JsonObject jsonObj = JsonParser.parseString(new String(encodedRecord)).getAsJsonObject();
+                String modType = jsonObj.get("modType").getAsString();
+                Map<String, String> attributes = new HashMap<>();
+                attributes.put("modType", modType);
+
+                PubsubMessage pubsubMessage = new PubsubMessage(encodedRecord, attributes);
+
+                context.output(pubsubMessage);
+              }
+            }));
     return messageCollection;
   }
 
