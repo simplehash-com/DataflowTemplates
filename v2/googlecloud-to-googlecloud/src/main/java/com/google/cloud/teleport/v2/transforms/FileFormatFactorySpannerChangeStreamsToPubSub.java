@@ -15,8 +15,11 @@
  */
 package com.google.cloud.teleport.v2.transforms;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.google.auto.value.AutoValue;
 import org.apache.beam.sdk.coders.AvroCoder;
@@ -37,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.google.auto.value.AutoValue;
 import com.google.cloud.teleport.v2.transforms.WriteDataChangeRecordsToAvro.DataChangeRecordToAvroFn;
 import com.google.cloud.teleport.v2.transforms.WriteDataChangeRecordsToJson.DataChangeRecordToJsonTextFn;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -166,25 +170,78 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
               public void processElement(ProcessContext context) {
                 byte[] encodedRecord = context.element();
 
-                Map<String, String> attributes = null;
+                final Map<String, String> attributes = new HashMap<>();
 
                 try {
                   JsonObject jsonObj = JsonParser.parseString(new String(encodedRecord)).getAsJsonObject();
                   if (jsonObj.has("modType")) {
                     String modType = jsonObj.get("modType").getAsString();
-                    attributes = new HashMap<>();
                     attributes.put("modType", modType);
+                  }
+
+                  final String tableName = jsonObj.get("tableName").getAsString();
+                  Collection<String> ids = getIdsFromModsArray(jsonObj.get("mods").getAsJsonArray());
+
+                  for (String id : ids) {
+                    if (tableName == "models_owner") {
+                      String chainId = getChainIdFromModelsOwnerId(id);
+                      if (chainId != null) {
+                        attributes.put("chainId", chainId);
+                      }
+                    } else if (tableName == "models_tokentransfer") {
+
+                    }
                   }
                 } catch (Exception e) {
                   // Unable to parse JSON body; move forward without the modType attribute
                   e.printStackTrace();
                 }
 
-                PubsubMessage pubsubMessage = new PubsubMessage(encodedRecord, attributes);
+                PubsubMessage pubsubMessage = new PubsubMessage(encodedRecord,
+                    attributes.isEmpty() ? null : attributes);
                 context.output(pubsubMessage);
               }
             }));
     return messageCollection;
+  }
+
+  protected static Collection<String> getIdsFromModsArray(JsonArray modsArray) {
+    Set<String> ids = new TreeSet<>();
+    modsArray.forEach(mod -> {
+      JsonObject modObj = mod.getAsJsonObject();
+      if (modObj.has("keysJson")) {
+        // Each key is encoded as a JSON object
+        JsonObject keysJson = JsonParser.parseString(modObj.get("keysJson").getAsString())
+            .getAsJsonObject();
+        if (keysJson.has("id")) {
+          String id = keysJson.get("id").getAsString();
+          if (id != null) {
+            ids.add(id);
+          }
+        }
+      }
+    });
+
+    return ids;
+  }
+
+  protected static String getChainIdFromModelsOwnerId(String id) {
+    int firstUnderscore = id.indexOf("_");
+    if (firstUnderscore > 0) {
+      String nftId = id.substring(firstUnderscore + 1);
+      return getChainIdFromNftId(nftId);
+    }
+
+    return null;
+  }
+
+  protected static String getChainIdFromNftId(String nftId) {
+    String[] parts = nftId.split("_");
+    if (parts.length > 1) {
+      return parts[parts.length - 2];
+    }
+
+    return null;
   }
 
   /** Builder for {@link FileFormatFactorySpannerChangeStreamsToPubSub}. */
