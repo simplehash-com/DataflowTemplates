@@ -180,21 +180,25 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                   final String tableName = jsonObj.get("tableName").getAsString();
                   Collection<String> ids = getIdsFromModsArray(jsonObj.get("mods").getAsJsonArray());
 
+                  System.out.println("Table name: " + tableName);
+                  System.out.println("Ids: " + ids);
+
                   for (String id : ids) {
-                    if (tableName == "models_owner") {
+                    if ("models_owner".equals(tableName)) {
                       String chainId = getChainIdFromModelsOwnerId(id);
+                      System.out.println("Chain ID: " + chainId);
                       if (chainId != null) {
-                        attributes.put(chainId, null);
+                        attributes.put(chainId, "");
                       }
-                    } else if (tableName == "models_tokentransfer") {
+                    } else if ("models_tokentransfer".equals(tableName)) {
                       String chainId = getChainIdFromTokenTransferId(id);
                       if (chainId != null) {
-                        attributes.put(chainId, null);
+                        attributes.put(chainId, "");
                       }
-                    } else if (tableName == "models_nftindexv3") {
+                    } else if ("models_nftindexv3".equals(tableName)) {
                       String chainId = getChainIdFromNftIndexV3Id(id);
                       if (chainId != null) {
-                        attributes.put(chainId, null);
+                        attributes.put(chainId, "");
                       }
                     }
                   }
