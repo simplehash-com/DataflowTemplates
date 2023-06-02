@@ -30,10 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The {@link PublishToPubSubDoFn} class is a {@link DoFn} that takes in
- * {@link PubsubMessage} and
- * publish PubsubMessages to the Pub/Sub topic using the native Pub/Sub client
- * library.
+ * The {@link PublishToPubSubDoFn} class is a {@link DoFn} that takes in {@link PubsubMessage} and
+ * publish PubsubMessages to the Pub/Sub topic using the native Pub/Sub client library.
  */
 public class PublishToPubSubDoFn extends DoFn<byte[], String> {
   /** Logger for class. */
@@ -73,9 +71,10 @@ public class PublishToPubSubDoFn extends DoFn<byte[], String> {
   @ProcessElement
   public void processElement(ProcessContext context) {
     byte[] payload = context.element();
-    com.google.pubsub.v1.PubsubMessage v1PubsubMessage = com.google.pubsub.v1.PubsubMessage.newBuilder()
-        .setData(ByteString.copyFrom(payload))
-        .build();
+    com.google.pubsub.v1.PubsubMessage v1PubsubMessage =
+        com.google.pubsub.v1.PubsubMessage.newBuilder()
+            .setData(ByteString.copyFrom(payload))
+            .build();
     ApiFuture<String> messageIdFuture = publisher.publish(v1PubsubMessage);
     List<ApiFuture<String>> futures = new ArrayList();
     futures.add(messageIdFuture);
