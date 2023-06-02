@@ -187,7 +187,15 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                         attributes.put("chainId", chainId);
                       }
                     } else if (tableName == "models_tokentransfer") {
-
+                      String chainId = getChainIdFromTokenTransferId(id);
+                      if (chainId != null) {
+                        attributes.put("chainId", chainId);
+                      }
+                    } else if (tableName == "models_nftindexv3") {
+                      String chainId = getChainIdFromNftIndexV3Id(id);
+                      if (chainId != null) {
+                        attributes.put("chainId", chainId);
+                      }
                     }
                   }
                 } catch (Exception e) {
@@ -237,6 +245,24 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
     String[] parts = nftId.split("_");
     if (parts.length > 1) {
       return parts[parts.length - 2];
+    }
+
+    return null;
+  }
+
+  protected static String getChainIdFromTokenTransferId(String id) {
+    String[] parts = id.split("_");
+    if (parts.length > 4) {
+      return parts[parts.length - 3];
+    }
+
+    return null;
+  }
+
+  protected static String getChainIdFromNftIndexV3Id(String id) {
+    String[] parts = id.split("\\.");
+    if (parts.length > 0) {
+      return parts[0];
     }
 
     return null;

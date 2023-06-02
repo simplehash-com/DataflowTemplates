@@ -35,6 +35,35 @@ public class FileFormatFactorySpannerChangeStreamsToPubSubTest {
     }
 
     @Test
+    public void test_getChainIdFromTokenTransferId() {
+        Assert.assertEquals("solana-101",
+                FileFormatFactorySpannerChangeStreamsToPubSub.getChainIdFromTokenTransferId(
+                        "1112AmWwo5cEx2nUCTen9uxUaUeXzKzXDREjidgx6e7VnstHZ4mLg1Vw436RvdPm3x8x2o45WqXByP4zDW38gS4_179531956_solana-101_0_0"));
+
+        Assert.assertEquals("flow-m",
+                FileFormatFactorySpannerChangeStreamsToPubSub.getChainIdFromTokenTransferId(
+                        "0x00000730c609f8c0_85116eb36228ec0253cc4b1fe34e6944d407896f0ca26adbb4d79bf0626e423e_a6d964dec3da82ef185fa26bbf8a3d2302542929afdc33dd470c096e94f998f9_flow-m_750001_0"));
+
+        Assert.assertEquals("evm-56",
+                FileFormatFactorySpannerChangeStreamsToPubSub.getChainIdFromTokenTransferId(
+                        "0x000000000000000000000000000000000000000b_0xc8b3760ef577d063ccb88fc426d0d61856e8cd79dc728d038006611f65ee94f8_0xfadaf0da9a2f1e76adac4cf07bc219be54a7fbbbcd5f1ad3b2185cb7f6f64932_evm-56_119_0"));
+
+    }
+
+    @Test
+    public void test_getChainIdFromNftIndexV3Id() {
+        Assert.assertEquals("evm-pg", FileFormatFactorySpannerChangeStreamsToPubSub.getChainIdFromNftIndexV3Id(
+                "evm-pg.0x000000000000c57cf0a1f923d44527e703f1ad70.000000000000000000000000000000005686786385366677572412502652901104648841196544"));
+
+        Assert.assertEquals("flow-m", FileFormatFactorySpannerChangeStreamsToPubSub.getChainIdFromNftIndexV3Id(
+                "flow-m.A.097bafa4e0b48eef.CharityNFT.000000000000000000000000000000000000000000000000000000000000000000000000000004"));
+
+        Assert.assertEquals("solana-101", FileFormatFactorySpannerChangeStreamsToPubSub.getChainIdFromNftIndexV3Id(
+                "solana-101.1115Tg5qkcjvGmoYSxtNRZXNaQcSjZ1HDsG8Px6cQxf.000000000000000000000000000000000000000000000000000000000000000000000000000000"));
+
+    }
+
+    @Test
     public void test_getIdsFromModsArray() {
         JsonObject jsonObj = JsonParser.parseString(json).getAsJsonObject();
         Collection<String> ids = FileFormatFactorySpannerChangeStreamsToPubSub
