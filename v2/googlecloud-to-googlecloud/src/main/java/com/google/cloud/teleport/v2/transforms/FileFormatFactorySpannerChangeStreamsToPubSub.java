@@ -182,13 +182,9 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                   final String tableName = jsonObj.get("tableName").getAsString();
                   Collection<String> ids = getIdsFromModsArray(jsonObj.get("mods").getAsJsonArray());
 
-                  System.out.println("Table name: " + tableName);
-                  System.out.println("Ids: " + ids);
-
                   for (String id : ids) {
                     if ("models_owner".equals(tableName)) {
                       String chainId = getChainIdFromModelsOwnerId(id);
-                      System.out.println("Chain ID: " + chainId);
                       if (chainId != null) {
                         attributes.put(chainId, "");
                       }
