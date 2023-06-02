@@ -72,13 +72,10 @@ public class PublishToPubSubDoFn extends DoFn<byte[], String> {
 
   @ProcessElement
   public void processElement(ProcessContext context) {
-    context.
-
     byte[] payload = context.element();
-    com.google.pubsub.v1.PubsubMessage v1PubsubMessage =
-        com.google.pubsub.v1.PubsubMessage.newBuilder()
-            .setData(ByteString.copyFrom(payload))
-            .build();
+    com.google.pubsub.v1.PubsubMessage v1PubsubMessage = com.google.pubsub.v1.PubsubMessage.newBuilder()
+        .setData(ByteString.copyFrom(payload))
+        .build();
     ApiFuture<String> messageIdFuture = publisher.publish(v1PubsubMessage);
     List<ApiFuture<String>> futures = new ArrayList();
     futures.add(messageIdFuture);
