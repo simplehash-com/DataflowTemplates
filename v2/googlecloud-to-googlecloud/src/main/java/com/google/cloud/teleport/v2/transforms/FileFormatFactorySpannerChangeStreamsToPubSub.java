@@ -184,17 +184,17 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                     if (tableName == "models_owner") {
                       String chainId = getChainIdFromModelsOwnerId(id);
                       if (chainId != null) {
-                        attributes.put("chainId", chainId);
+                        attributes.put(chainId, null);
                       }
                     } else if (tableName == "models_tokentransfer") {
                       String chainId = getChainIdFromTokenTransferId(id);
                       if (chainId != null) {
-                        attributes.put("chainId", chainId);
+                        attributes.put(chainId, null);
                       }
                     } else if (tableName == "models_nftindexv3") {
                       String chainId = getChainIdFromNftIndexV3Id(id);
                       if (chainId != null) {
-                        attributes.put("chainId", chainId);
+                        attributes.put(chainId, null);
                       }
                     }
                   }
