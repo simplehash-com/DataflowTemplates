@@ -172,7 +172,7 @@ mvn clean package -PtemplatesStage  \
   -DprojectId="simplehash" \
   -DbucketName="simplehash-dataflow-templates" \
   -DstagePrefix="images/$(date +%Y_%m_%d)_01" \
-  -DtemplateName="Spanner_Change_Streams_to_PubSub" \ 
+  -DtemplateName="Spanner_Change_Streams_to_PubSub" \
   -Dcheckstyle.skip \
 ```
 
