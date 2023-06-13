@@ -199,7 +199,7 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                     } else if ("models_nftlisting".equals(tableName)) {
                       String marketplaceId = getMarketplaceIdFromNftListing(id);
                       if (marketplaceId != null) {
-                        attributes.put("marketplaceId-" + marketplaceId, "");
+                        attributes.put(marketplaceId, "");
                       }
                     }
                   }
@@ -209,7 +209,7 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                         jsonObj.get("mods").getAsJsonArray());
 
                     for (String marketplaceId : marketplaceIds) {
-                      attributes.put("marketplaceId-" + marketplaceId, "");
+                      attributes.put(marketplaceId, "");
                     }
 
                   }

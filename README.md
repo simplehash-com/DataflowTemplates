@@ -229,6 +229,7 @@ mvn clean package -PtemplatesStage  \
   -DstagePrefix="images/$(date +%Y_%m_%d)_01" \
   -DtemplateName="Spanner_Change_Streams_to_PubSub" \
   -Dcheckstyle.skip \
+  -pl v2/googlecloud-to-googlecloud -am
 ```
 
 
