@@ -198,7 +198,22 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                       if (chainId != null) {
                         attributes.put(chainId, "");
                       }
+                    } else if ("models_nftlisting".equals(tableName)) {
+                      String marketplaceId = getMarketplaceIdFromNftListing(id);
+                      if (marketplaceId != null) {
+                        attributes.put("marketplaceId-" + marketplaceId, "");
+                      }
                     }
+                  }
+
+                  if ("models_nftlistingevent".equals(tableName)) {
+                    Collection<String> marketplaceIds = getMarketplaceIdsFromModsArray(
+                        jsonObj.get("mods").getAsJsonArray());
+
+                    for (String marketplaceId : marketplaceIds) {
+                      attributes.put("marketplaceId-" + marketplaceId, "");
+                    }
+
                   }
                 } catch (Exception e) {
                   // Unable to parse JSON body; move forward without the modType attribute
@@ -211,6 +226,7 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
               }
             }));
     return messageCollection;
+
   }
 
   protected static Collection<String> getIdsFromModsArray(JsonArray modsArray) {
@@ -231,6 +247,26 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
     });
 
     return ids;
+  }
+
+  protected static Collection<String> getMarketplaceIdsFromModsArray(JsonArray modsArray) {
+    Set<String> marketplaceIds = new TreeSet<>();
+    modsArray.forEach(mod -> {
+      JsonObject modObj = mod.getAsJsonObject();
+      if (modObj.has("newValuesJson")) {
+        // Each key is encoded as a JSON object
+        JsonObject newValuesJson = JsonParser.parseString(modObj.get("newValuesJson").getAsString())
+            .getAsJsonObject();
+        if (newValuesJson.has("marketplace_id")) {
+          String marketplaceId = newValuesJson.get("marketplace_id").getAsString();
+          if (marketplaceId != null) {
+            marketplaceIds.add(marketplaceId);
+          }
+        }
+      }
+    });
+
+    return marketplaceIds;
   }
 
   protected static String getChainIdFromModelsOwnerId(String id) {
@@ -265,6 +301,15 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
     String[] parts = id.split("\\.");
     if (parts.length > 0) {
       return parts[0];
+    }
+
+    return null;
+  }
+
+  protected static String getMarketplaceIdFromNftListing(String id) {
+    String[] parts = id.split("_");
+    if (parts.length == 3) {
+      return parts[1];
     }
 
     return null;
