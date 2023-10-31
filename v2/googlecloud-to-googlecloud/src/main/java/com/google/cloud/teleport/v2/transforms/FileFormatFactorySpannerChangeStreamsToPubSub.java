@@ -178,6 +178,8 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                   }
 
                   final String tableName = jsonObj.get("tableName").getAsString();
+                  attributes.put("tableName", tableName);
+
                   Collection<String> ids = getIdsFromModsArray(jsonObj.get("mods").getAsJsonArray());
 
                   for (String id : ids) {
