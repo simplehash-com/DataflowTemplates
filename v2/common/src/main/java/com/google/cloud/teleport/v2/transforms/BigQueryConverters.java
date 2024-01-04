@@ -18,6 +18,7 @@ package com.google.cloud.teleport.v2.transforms;
 import static org.apache.beam.vendor.guava.v32_1_2_jre.com.google.common.base.Preconditions.checkArgument;
 import static org.apache.beam.vendor.guava.v32_1_2_jre.com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.auto.value.AutoValue;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.auto.value.AutoValue;
@@ -93,7 +94,8 @@ public class BigQueryConverters {
   private static final JsonFactory JSON_FACTORY = Transport.getJsonFactory();
 
   /**
-   * Converts a JSON string to a {@link TableRow} object. If the data fails to convert, a {@link
+   * Converts a JSON string to a {@link TableRow} object. If the data fails to
+   * convert, a {@link
    * RuntimeException} will be thrown.
    *
    * @param json The JSON string to parse.
@@ -102,8 +104,7 @@ public class BigQueryConverters {
   public static TableRow convertJsonToTableRow(String json) {
     TableRow row;
     // Parse the JSON into a {@link TableRow} object.
-    try (InputStream inputStream =
-        new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))) {
+    try (InputStream inputStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))) {
       row = TableRowJsonCoder.of().decode(inputStream, Context.OUTER);
 
     } catch (IOException e) {
@@ -116,19 +117,24 @@ public class BigQueryConverters {
   /**
    * Creates a {@link Write} transform based on {@code options}.
    *
-   * <p>Along with the values in {@code options}, the following are set by default:
+   * <p>
+   * Along with the values in {@code options}, the following are set by default:
    *
    * <ul>
-   *   <li>{@link InsertRetryPolicy#retryTransientErrors()}
-   *   <li>{@link Write#withExtendedErrorInfo()}
+   * <li>{@link InsertRetryPolicy#retryTransientErrors()}
+   * <li>{@link Write#withExtendedErrorInfo()}
    * </ul>
    *
-   * <p>It is the responsibility of the caller to set the schema and write method on the returned
+   * <p>
+   * It is the responsibility of the caller to set the schema and write method on
+   * the returned
    * value.
    *
    * @param options The options for configuring this write transform.
-   * @param <T> The {@link POutput} type of this write. Since type inference does not work when
-   *     setting a schema on the returned {@link Write}, this value must be explicitly set.
+   * @param <T>     The {@link POutput} type of this write. Since type inference
+   *                does not work when
+   *                setting a schema on the returned {@link Write}, this value
+   *                must be explicitly set.
    * @return The write transform, which can be further configured as needed.
    */
   public static <T> Write<T> createWriteTransform(WriteOptions options) {
@@ -159,69 +165,46 @@ public class BigQueryConverters {
   }
 
   /**
-   * The {@link BigQueryReadOptions} interface contains option necessary to interface with BigQuery.
+   * The {@link BigQueryReadOptions} interface contains option necessary to
+   * interface with BigQuery.
    */
   public interface BigQueryReadOptions extends PipelineOptions {
-    @TemplateParameter.BigQueryTable(
-        order = 1,
-        optional = true,
-        description = "BigQuery source table",
-        helpText = "BigQuery source table spec.",
-        example = "bigquery-project:dataset.input_table")
+    @TemplateParameter.BigQueryTable(order = 1, optional = true, description = "BigQuery source table", helpText = "BigQuery source table spec.", example = "bigquery-project:dataset.input_table")
     String getInputTableSpec();
 
     void setInputTableSpec(String inputTableSpec);
 
-    @TemplateParameter.BigQueryTable(
-        order = 2,
-        optional = true,
-        description = "The dead-letter table name to output failed messages to BigQuery",
-        helpText =
-            "Messages failed to reach the output table for all kind of reasons (e.g., mismatched "
-                + "schema, malformed json) are written to this table. If it doesn't exist, it will be "
-                + "created during pipeline execution.",
-        example = "your-project-id:your-dataset.your-table-name")
+    @TemplateParameter.BigQueryTable(order = 2, optional = true, description = "The dead-letter table name to output failed messages to BigQuery", helpText = "Messages failed to reach the output table for all kind of reasons (e.g., mismatched "
+        + "schema, malformed json) are written to this table. If it doesn't exist, it will be "
+        + "created during pipeline execution.", example = "your-project-id:your-dataset.your-table-name")
     String getOutputDeadletterTable();
 
     void setOutputDeadletterTable(String outputDeadletterTable);
 
-    @TemplateParameter.Text(
-        order = 3,
-        optional = true,
-        regexes = {"^.+$"},
-        description = "Input SQL query.",
-        helpText = "Query to be executed on the source to extract the data.",
-        example = "select * from sampledb.sample_table")
+    @TemplateParameter.Text(order = 3, optional = true, regexes = {
+        "^.+$" }, description = "Input SQL query.", helpText = "Query to be executed on the source to extract the data.", example = "select * from sampledb.sample_table")
     String getQuery();
 
     void setQuery(String query);
 
-    @TemplateParameter.Boolean(
-        order = 4,
-        optional = true,
-        description = "Set to true to use legacy SQL",
-        helpText = "Set to true to use legacy SQL (only applicable if supplying query).")
+    @TemplateParameter.Boolean(order = 4, optional = true, description = "Set to true to use legacy SQL", helpText = "Set to true to use legacy SQL (only applicable if supplying query).")
     @Default.Boolean(false)
     Boolean getUseLegacySql();
 
     void setUseLegacySql(Boolean useLegacySql);
 
-    @TemplateParameter.Text(
-        order = 5,
-        optional = true,
-        regexes = {"[a-zA-Z0-9-]+"},
-        description = "BigQuery geographic location where the query job will be executed.",
-        helpText =
-            "Needed when reading from an authorized view without underlying table's permission.",
-        example = "US")
+    @TemplateParameter.Text(order = 5, optional = true, regexes = {
+        "[a-zA-Z0-9-]+" }, description = "BigQuery geographic location where the query job will be executed.", helpText = "Needed when reading from an authorized view without underlying table's permission.", example = "US")
     String getQueryLocation();
 
     void setQueryLocation(String query);
   }
 
   /**
-   * The {@link FailsafeJsonToTableRow} transform converts JSON strings to {@link TableRow} objects.
-   * The transform accepts a {@link FailsafeElement} object so the original payload of the incoming
+   * The {@link FailsafeJsonToTableRow} transform converts JSON strings to
+   * {@link TableRow} objects.
+   * The transform accepts a {@link FailsafeElement} object so the original
+   * payload of the incoming
    * record can be maintained across multiple series of transforms.
    */
   @AutoValue
@@ -241,24 +224,24 @@ public class BigQueryConverters {
       return failsafeElements.apply(
           "JsonToTableRow",
           ParDo.of(
-                  new DoFn<FailsafeElement<T, String>, TableRow>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext context) {
-                      FailsafeElement<T, String> element = context.element();
-                      String json = element.getPayload();
+              new DoFn<FailsafeElement<T, String>, TableRow>() {
+                @ProcessElement
+                public void processElement(ProcessContext context) {
+                  FailsafeElement<T, String> element = context.element();
+                  String json = element.getPayload();
 
-                      try {
-                        TableRow row = convertJsonToTableRow(json);
-                        context.output(row);
-                      } catch (Exception e) {
-                        context.output(
-                            failureTag(),
-                            FailsafeElement.of(element)
-                                .setErrorMessage(e.getMessage())
-                                .setStacktrace(Throwables.getStackTraceAsString(e)));
-                      }
-                    }
-                  })
+                  try {
+                    TableRow row = convertJsonToTableRow(json);
+                    context.output(row);
+                  } catch (Exception e) {
+                    context.output(
+                        failureTag(),
+                        FailsafeElement.of(element)
+                            .setErrorMessage(e.getMessage())
+                            .setStacktrace(Throwables.getStackTraceAsString(e)));
+                  }
+                }
+              })
               .withOutputTags(successTag(), TupleTagList.of(failureTag())));
     }
 
@@ -275,7 +258,8 @@ public class BigQueryConverters {
   }
 
   /**
-   * The {@link ReadBigQueryTableRows} class reads from BigQuery using {@link BigQueryIO}. The
+   * The {@link ReadBigQueryTableRows} class reads from BigQuery using
+   * {@link BigQueryIO}. The
    * transform returns a {@link PCollection} of {@link TableRow}.
    */
   public abstract static class ReadBigQueryTableRows
@@ -284,11 +268,10 @@ public class BigQueryConverters {
     private final PTransform<PBegin, PCollection<TableRow>> inner;
 
     public ReadBigQueryTableRows(BigQueryReadOptions options) {
-      inner =
-          ReadBigQuery.<TableRow>newBuilder()
-              .setOptions(options.as(BigQueryReadOptions.class))
-              .setReadFunction(BigQueryIO.readTableRows().withCoder(TableRowJsonCoder.of()))
-              .build();
+      inner = ReadBigQuery.<TableRow>newBuilder()
+          .setOptions(options.as(BigQueryReadOptions.class))
+          .setReadFunction(BigQueryIO.readTableRows().withCoder(TableRowJsonCoder.of()))
+          .build();
     }
 
     public static ReadBigQuery.Builder<TableRow> newBuilder() {
@@ -382,21 +365,31 @@ public class BigQueryConverters {
   }
 
   /**
-   * The {@link TableRowToFailsafeJsonDocument} class is a {@link PTransform} which transforms
-   * {@link TableRow} objects into Json documents for insertion into Elasticsearch. Optionally a
-   * javascript UDF can be supplied to parse the {@link TableRow} object. The executions of the UDF
-   * and transformation to {@link TableRow} objects is done in a fail-safe way by wrapping the
-   * element with it's original payload inside the {@link FailsafeElement} class. The {@link
-   * TableRowToFailsafeJsonDocument} transform will output a {@link PCollectionTuple} which contains
+   * The {@link TableRowToFailsafeJsonDocument} class is a {@link PTransform}
+   * which transforms
+   * {@link TableRow} objects into Json documents for insertion into
+   * Elasticsearch. Optionally a
+   * javascript UDF can be supplied to parse the {@link TableRow} object. The
+   * executions of the UDF
+   * and transformation to {@link TableRow} objects is done in a fail-safe way by
+   * wrapping the
+   * element with it's original payload inside the {@link FailsafeElement} class.
+   * The {@link
+   * TableRowToFailsafeJsonDocument} transform will output a
+   * {@link PCollectionTuple} which contains
    * all output and dead-letter {@link PCollection}.
    *
-   * <p>The {@link PCollectionTuple} output will contain the following {@link PCollection}:
+   * <p>
+   * The {@link PCollectionTuple} output will contain the following
+   * {@link PCollection}:
    *
    * <ul>
-   *   <li>{@link TableRowToFailsafeJsonDocument#transformOutTag()} - Contains all records
-   *       successfully converted from JSON to {@link TableRow} objects.
-   *   <li>{@link TableRowToFailsafeJsonDocument#transformDeadletterOutTag()} - Contains all {@link
-   *       FailsafeElement} records which couldn't be converted to table rows.
+   * <li>{@link TableRowToFailsafeJsonDocument#transformOutTag()} - Contains all
+   * records
+   * successfully converted from JSON to {@link TableRow} objects.
+   * <li>{@link TableRowToFailsafeJsonDocument#transformDeadletterOutTag()} -
+   * Contains all {@link
+   * FailsafeElement} records which couldn't be converted to table rows.
    * </ul>
    */
   @AutoValue
@@ -422,32 +415,29 @@ public class BigQueryConverters {
 
       PCollectionTuple udfOut;
 
-      PCollectionTuple failsafeTableRows =
-          input.apply(
-              "TableRowToFailsafeElement",
-              ParDo.of(new TableRowToFailsafeElementFn(transformDeadletterOutTag()))
-                  .withOutputTags(transformOutTag(), TupleTagList.of(transformDeadletterOutTag())));
+      PCollectionTuple failsafeTableRows = input.apply(
+          "TableRowToFailsafeElement",
+          ParDo.of(new TableRowToFailsafeElementFn(transformDeadletterOutTag()))
+              .withOutputTags(transformOutTag(), TupleTagList.of(transformDeadletterOutTag())));
 
       // Use Udf to parse table rows if supplied.
       if (options().getJavascriptTextTransformGcsPath() != null) {
-        udfOut =
-            failsafeTableRows
-                .get(transformOutTag())
-                .apply(
-                    "ProcessFailsafeRowsUdf",
-                    JavascriptTextTransformer.FailsafeJavascriptUdf.<TableRow>newBuilder()
-                        .setFileSystemPath(options().getJavascriptTextTransformGcsPath())
-                        .setFunctionName(options().getJavascriptTextTransformFunctionName())
-                        .setReloadIntervalMinutes(
-                            options().getJavascriptTextTransformReloadIntervalMinutes())
-                        .setSuccessTag(udfOutTag())
-                        .setFailureTag(udfDeadletterOutTag())
-                        .build());
+        udfOut = failsafeTableRows
+            .get(transformOutTag())
+            .apply(
+                "ProcessFailsafeRowsUdf",
+                JavascriptTextTransformer.FailsafeJavascriptUdf.<TableRow>newBuilder()
+                    .setFileSystemPath(options().getJavascriptTextTransformGcsPath())
+                    .setFunctionName(options().getJavascriptTextTransformFunctionName())
+                    .setReloadIntervalMinutes(
+                        options().getJavascriptTextTransformReloadIntervalMinutes())
+                    .setSuccessTag(udfOutTag())
+                    .setFailureTag(udfDeadletterOutTag())
+                    .build());
 
-        PCollection<FailsafeElement<TableRow, String>> failedOut =
-            PCollectionList.of(udfOut.get(udfDeadletterOutTag()))
-                .and(failsafeTableRows.get(transformDeadletterOutTag()))
-                .apply("FlattenFailedOut", Flatten.pCollections());
+        PCollection<FailsafeElement<TableRow, String>> failedOut = PCollectionList.of(udfOut.get(udfDeadletterOutTag()))
+            .and(failsafeTableRows.get(transformDeadletterOutTag()))
+            .apply("FlattenFailedOut", Flatten.pCollections());
 
         return PCollectionTuple.of(transformOutTag(), udfOut.get(udfOutTag()))
             .and(transformDeadletterOutTag(), failedOut);
@@ -477,8 +467,10 @@ public class BigQueryConverters {
   }
 
   /**
-   * The {@link TableRowToFailsafeElementFn} wraps an {@link TableRow} with the {@link
-   * FailsafeElement} class so errors can be recovered from and the original message can be output
+   * The {@link TableRowToFailsafeElementFn} wraps an {@link TableRow} with the
+   * {@link
+   * FailsafeElement} class so errors can be recovered from and the original
+   * message can be output
    * to a error records table.
    */
   static class TableRowToFailsafeElementFn
@@ -487,12 +479,10 @@ public class BigQueryConverters {
     private final TupleTag<FailsafeElement<TableRow, String>> transformDeadletterOutTag;
 
     /** {@link Counter} for successfully processed elements. */
-    private Counter successCounter =
-        Metrics.counter(TableRowToFailsafeElementFn.class, "SuccessProcessCounter");
+    private Counter successCounter = Metrics.counter(TableRowToFailsafeElementFn.class, "SuccessProcessCounter");
 
     /** {@link Counter} for un-successfully processed elements. */
-    private Counter failedCounter =
-        Metrics.counter(TableRowToFailsafeElementFn.class, "FailedProcessCounter");
+    private Counter failedCounter = Metrics.counter(TableRowToFailsafeElementFn.class, "FailedProcessCounter");
 
     TableRowToFailsafeElementFn(
         TupleTag<FailsafeElement<TableRow, String>> transformDeadletterOutTag) {
@@ -518,9 +508,12 @@ public class BigQueryConverters {
   }
 
   /**
-   * The {@link FailsafeTableRowToFailsafeStringFn} converts a {@link FailsafeElement} containing a
-   * {@link TableRow} and string into a {@link FailsafeElement} containing two strings. The output
-   * {@link FailsafeElement#getOriginalPayload()} will return {@link TableRow#toString()}.
+   * The {@link FailsafeTableRowToFailsafeStringFn} converts a
+   * {@link FailsafeElement} containing a
+   * {@link TableRow} and string into a {@link FailsafeElement} containing two
+   * strings. The output
+   * {@link FailsafeElement#getOriginalPayload()} will return
+   * {@link TableRow#toString()}.
    */
   public static class FailsafeTableRowToFailsafeStringFn
       extends DoFn<FailsafeElement<TableRow, String>, FailsafeElement<String, String>> {
@@ -562,11 +555,13 @@ public class BigQueryConverters {
   /**
    * Returns {@code String} using Key/Value style formatting.
    *
-   * <p>Extracts TableRow fields and applies values to the formatTemplate. ie.
+   * <p>
+   * Extracts TableRow fields and applies values to the formatTemplate. ie.
    * formatStringTemplate("I am {key}"{"key": "formatted"}) -> "I am formatted"
    *
    * @param formatTemplate a String with bracketed keys to apply "I am a {key}"
-   * @param row is a TableRow object which is used to supply key:values to the template
+   * @param row            is a TableRow object which is used to supply key:values
+   *                       to the template
    */
   public static String formatStringTemplate(String formatTemplate, TableRow row) {
     // Key/Value Map used to replace values in template
@@ -586,7 +581,8 @@ public class BigQueryConverters {
   }
 
   /**
-   * Returns a sanitized string by replacing invalid BigQuery characters ($ or .) with the
+   * Returns a sanitized string by replacing invalid BigQuery characters ($ or .)
+   * with the
    * replacement argument supplied.
    */
   public static String sanitizeBigQueryChars(String name, String replacement) {
@@ -594,7 +590,8 @@ public class BigQueryConverters {
   }
 
   /**
-   * Returns a sanitized string by replacing invalid BigQuery Dataset characters (non- Letters,
+   * Returns a sanitized string by replacing invalid BigQuery Dataset characters
+   * (non- Letters,
    * numbers or underscores) with the replacement argument supplied.
    * https://cloud.google.com/bigquery/docs/datasets#dataset-naming
    */
@@ -602,12 +599,16 @@ public class BigQueryConverters {
     return BQ_SANITIZE_DATASET_PATTERN.matcher(name).replaceAll(replacement);
   }
 
-  /** A {@link SerializableFunction} to convert a {@link TableRow} to a {@link GenericRecord}. */
+  /**
+   * A {@link SerializableFunction} to convert a {@link TableRow} to a
+   * {@link GenericRecord}.
+   */
   public static class TableRowToGenericRecordFn
       implements SerializableFunction<TableRow, GenericRecord> {
 
     /**
-     * Creates a {@link SerializableFunction} that uses a {@link Schema} to translate a {@link
+     * Creates a {@link SerializableFunction} that uses a {@link Schema} to
+     * translate a {@link
      * TableRow} into a {@link GenericRecord}.
      *
      * @param avroSchema schema to be used for the {@link GenericRecord}
@@ -634,11 +635,15 @@ public class BigQueryConverters {
   }
 
   /**
-   * The {@link BigQueryTableConfigManager} POJO Class to manage the BigQuery Output Table
-   * configurations. It allows for a full table path or a set of table template params to be
+   * The {@link BigQueryTableConfigManager} POJO Class to manage the BigQuery
+   * Output Table
+   * configurations. It allows for a full table path or a set of table template
+   * params to be
    * supplied interchangeably.
    *
-   * <p>Optionally supply projectIdVal, datasetTemplateVal, and tableTemplateVal or the config
+   * <p>
+   * Optionally supply projectIdVal, datasetTemplateVal, and tableTemplateVal or
+   * the config
    * manager will default to using outputTableSpec.
    */
   public static class BigQueryTableConfigManager {
@@ -650,12 +655,15 @@ public class BigQueryConverters {
     /**
      * Build a {@code BigQueryTableConfigManager} for use in pipelines.
      *
-     * @param projectIdVal The Project ID for the GCP BigQuery project.
+     * @param projectIdVal       The Project ID for the GCP BigQuery project.
      * @param datasetTemplateVal The BQ Dataset value or a templated value.
-     * @param tableTemplateVal The BQ Table value or a templated value.
-     * @param outputTableSpec The full path of a BQ Table ie. `project:dataset.table`
-     *     <p>Optionally supply projectIdVal, datasetTemplateVal, and tableTemplateVal or the config
-     *     manager will default to using outputTableSpec.
+     * @param tableTemplateVal   The BQ Table value or a templated value.
+     * @param outputTableSpec    The full path of a BQ Table ie.
+     *                           `project:dataset.table`
+     *                           <p>
+     *                           Optionally supply projectIdVal, datasetTemplateVal,
+     *                           and tableTemplateVal or the config
+     *                           manager will default to using outputTableSpec.
      */
     public BigQueryTableConfigManager(
         String projectIdVal,
@@ -693,22 +701,24 @@ public class BigQueryConverters {
     }
 
     public String getOutputTableSpec() {
-      String tableSpec =
-          String.format("%s:%s.%s", this.projectId, this.datasetTemplate, this.tableTemplate);
+      String tableSpec = String.format("%s:%s.%s", this.projectId, this.datasetTemplate, this.tableTemplate);
       return tableSpec;
     }
   }
 
   /**
-   * If deadletterTable is available, it is returned as is, otherwise outputTableSpec +
+   * If deadletterTable is available, it is returned as is, otherwise
+   * outputTableSpec +
    * defaultDeadLetterTableSuffix is returned instead.
    */
   /**
    * Return a {@code String} table name to be used as a dead letter queue.
    *
-   * @param deadletterTable Default dead letter table to use.
-   * @param outputTableSpec Name of the BigQuery output table for successful rows.
-   * @param defaultDeadLetterTableSuffix An optional suffix off the successful table.
+   * @param deadletterTable              Default dead letter table to use.
+   * @param outputTableSpec              Name of the BigQuery output table for
+   *                                     successful rows.
+   * @param defaultDeadLetterTableSuffix An optional suffix off the successful
+   *                                     table.
    */
   public static String maybeUseDefaultDeadletterTable(
       String deadletterTable, String outputTableSpec, String defaultDeadLetterTableSuffix) {
@@ -719,30 +729,31 @@ public class BigQueryConverters {
     }
   }
 
-  public static final Map<String, LegacySQLTypeName> BQ_TYPE_STRINGS =
-      new HashMap<String, LegacySQLTypeName>() {
-        {
-          put("BOOLEAN", LegacySQLTypeName.BOOLEAN);
-          put("BYTES", LegacySQLTypeName.BYTES);
-          put("DATE", LegacySQLTypeName.DATE);
-          put("DATETIME", LegacySQLTypeName.DATETIME);
-          put("FLOAT", LegacySQLTypeName.FLOAT);
-          put("INTEGER", LegacySQLTypeName.INTEGER);
-          put("NUMERIC", LegacySQLTypeName.NUMERIC);
-          put("RECORD", LegacySQLTypeName.RECORD);
-          put("STRING", LegacySQLTypeName.STRING);
-          put("TIME", LegacySQLTypeName.TIME);
-          put("TIMESTAMP", LegacySQLTypeName.TIMESTAMP);
-        }
-      };
+  public static final Map<String, LegacySQLTypeName> BQ_TYPE_STRINGS = new HashMap<String, LegacySQLTypeName>() {
+    {
+      put("BOOLEAN", LegacySQLTypeName.BOOLEAN);
+      put("BYTES", LegacySQLTypeName.BYTES);
+      put("DATE", LegacySQLTypeName.DATE);
+      put("DATETIME", LegacySQLTypeName.DATETIME);
+      put("FLOAT", LegacySQLTypeName.FLOAT);
+      put("INTEGER", LegacySQLTypeName.INTEGER);
+      put("NUMERIC", LegacySQLTypeName.NUMERIC);
+      put("RECORD", LegacySQLTypeName.RECORD);
+      put("STRING", LegacySQLTypeName.STRING);
+      put("TIME", LegacySQLTypeName.TIME);
+      put("TIMESTAMP", LegacySQLTypeName.TIMESTAMP);
+    }
+  };
 
   /**
-   * The {@link SchemaUtils} Class to easily convert from a json string to a BigQuery
+   * The {@link SchemaUtils} Class to easily convert from a json string to a
+   * BigQuery
    * List&lt;Field&gt;.
    */
   public static class SchemaUtils {
 
-    private static final Type gsonSchemaType = new TypeToken<List<Map>>() {}.getType();
+    private static final Type gsonSchemaType = new TypeToken<List<Map>>() {
+    }.getType();
 
     private static Field mapToField(Map fMap) {
       String typeStr = fMap.get("type").toString();
@@ -785,8 +796,10 @@ public class BigQueryConverters {
   public static SerializableFunction<Row, TableRow> rowToTableRowFn = BigQueryUtils::toTableRow;
 
   /**
-   * The {@link FailsafeRowToTableRow} transform converts {@link Row} to {@link TableRow} objects.
-   * The transform accepts a {@link FailsafeElement} object so the original payload of the incoming
+   * The {@link FailsafeRowToTableRow} transform converts {@link Row} to
+   * {@link TableRow} objects.
+   * The transform accepts a {@link FailsafeElement} object so the original
+   * payload of the incoming
    * record can be maintained across multiple series of transforms.
    */
   @AutoValue
@@ -806,24 +819,24 @@ public class BigQueryConverters {
       return failsafeElements.apply(
           "FailsafeRowToTableRow",
           ParDo.of(
-                  new DoFn<FailsafeElement<T, Row>, TableRow>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext context) {
-                      FailsafeElement<T, Row> element = context.element();
-                      Row row = element.getPayload();
+              new DoFn<FailsafeElement<T, Row>, TableRow>() {
+                @ProcessElement
+                public void processElement(ProcessContext context) {
+                  FailsafeElement<T, Row> element = context.element();
+                  Row row = element.getPayload();
 
-                      try {
-                        TableRow tableRow = BigQueryUtils.toTableRow(row);
-                        context.output(tableRow);
-                      } catch (Exception e) {
-                        context.output(
-                            failureTag(),
-                            FailsafeElement.of(element)
-                                .setErrorMessage(e.getMessage())
-                                .setStacktrace(Throwables.getStackTraceAsString(e)));
-                      }
-                    }
-                  })
+                  try {
+                    TableRow tableRow = BigQueryUtils.toTableRow(row);
+                    context.output(tableRow);
+                  } catch (Exception e) {
+                    context.output(
+                        failureTag(),
+                        FailsafeElement.of(element)
+                            .setErrorMessage(e.getMessage())
+                            .setStacktrace(Throwables.getStackTraceAsString(e)));
+                  }
+                }
+              })
               .withOutputTags(successTag(), TupleTagList.of(failureTag())));
     }
 

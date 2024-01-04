@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.google.auto.value.AutoValue;
-import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.CoderException;
 import org.apache.beam.sdk.extensions.avro.coders.AvroCoder;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
