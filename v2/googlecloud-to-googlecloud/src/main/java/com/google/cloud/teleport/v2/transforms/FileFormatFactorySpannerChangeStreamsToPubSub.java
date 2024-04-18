@@ -207,7 +207,7 @@ public abstract class FileFormatFactorySpannerChangeStreamsToPubSub
                     }
                   }
 
-                  if ("models_nftlistingevent".equals(tableName) || "models_nftofferevent".equals(tableName)) {
+                  if ("models_nftlistingevent".equals(tableName) || "models_nftofferevent".equals(tableName) || "models_historicalfloorprice".equals(tableName)) {
                     Collection<String> marketplaceIds = getMarketplaceIdsFromModsArray(
                         jsonObj.get("mods").getAsJsonArray());
 
